@@ -32,7 +32,7 @@ public class ListingsRepository {
 
 	/*
 	     db.listings.aggregate([
-     {$group:{_id:'$address.street'}},
+     {$group:{_id:'$address.suburb'}},
     {
         $project: {
             "_id":1,
@@ -40,10 +40,8 @@ public class ListingsRepository {
     }
 ]);
 	 */
-
-
 	public List<String> getSuburbs(String country) {
-		GroupOperation group = Aggregation.group("address.street");
+		GroupOperation group = Aggregation.group("address.suburb");
         ProjectionOperation pOperation = Aggregation.project("_id");
         Aggregation pipeline = Aggregation.newAggregation(group, pOperation);
         List<Document> output = template.aggregate(pipeline,"listings", Document.class).getMappedResults();
@@ -59,45 +57,27 @@ public class ListingsRepository {
 	}
 
 	/*
-db.listings.aggregate([
+    db.listings.find(
     {
-        $match: {
-            'address.suburb':{$regex:"bondi", $options:"i"},
-            price: {$lte: 800 },
-            accommodates: {$gte: 2},
-            min_nights: {$lte: 2}
-        }
-    }, {
-        $sort: { price: -1 }
-    },
-    {
-        $project: {
-            "_id":1,
-            "price": 1,
-            "name": 1,
-            "accommodates": 1,
-        }
+        "address.suburb": {$regex:"manly", $options:"i"},
+        price: {$lte: 900 },
+            accommodates: {$gte: 1},
+            min_nights: {$lte: 1}
     }
-]);
+).sort({ price: -1 });
 	 */
 	public List<AccommodationSummary> findListings(String suburb, int persons, int duration, float priceRange) {
 
-		// MatchOperation matchOps = Aggregation.match(Criteria.where("address.suburb").is(suburb)
-        //     .and("accommodates").gte(persons)
-        //     .and("price").lte(priceRange)
-		// 	.and("min_nights").lte(duration));
+	Criteria criteria = Criteria.where("address.suburb").regex(suburb, "i")
+		.and("accommodates").gte(persons)
+		.and("price").lte(priceRange)
+		.and("min_nights").lte(duration);
+		
+	Sort sort = Sort.by(Direction.DESC,"price");
 
-			MatchOperation matchOps = Aggregation.match(Criteria.where("accommodates").gte(persons)
-            .and("price").lte(priceRange)
-			.and("min_nights").lte(duration));
+	Query query = Query.query(criteria).with(sort);
 
-        SortOperation sortBy = Aggregation.sort(Sort.by(Direction.DESC,"price"));
-        ProjectionOperation pOperation = Aggregation.project("_id","price","name", "accommodates");
-
-        Aggregation pipeline = Aggregation.newAggregation(matchOps, sortBy, pOperation);
-
-        List<Document> output = template.aggregate(pipeline,"listings", Document.class).getMappedResults();
-		System.out.println("SEARCHED LISTINGS>>>>" +output);
+	List<Document> output = template.find(query, Document.class, "listings");
 
 		List<AccommodationSummary> allListings = new ArrayList<>();
 
