@@ -1,0 +1,27 @@
+Write your Task 2 answers in this file
+
+Task 2.1 - from command Terminal
+mongoimport -hlocalhost --port=27017 -dbedandbreakfast -clistings_and_reviews data/listings.json
+
+
+Task2.2 - from 3T
+db.listings.insertMany(db.listings_and_reviews.find(
+    {
+        "address.country": "Australia"
+    }).toArray());
+
+Task 2.3
+db.reviews.insertMany(db.listings.aggregate(
+{
+    $unwind:"$reviews"
+},
+{
+    $group: {
+        _id: '$reviews',
+        review: { $first: '$reviews' }
+    }
+},
+{
+    $project: {review:1, _id:0}
+}).toArray());
+
