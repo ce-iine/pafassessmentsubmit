@@ -1,7 +1,7 @@
 Write your Task 2 answers in this file
 
 Task 2.1 - from command Terminal
-mongoimport --uri="mongodb://<MONGO_USER>:<MONGO_PASSWORD>@<MONGO_HOST>:<MONGO_PORT>/bedandbreakfast?authSource=admin&authMechanism=SCRAM-SHA-1" 
+mongoimport --uri="mongodb://<MONGO_USER>:<MONGO_PASSWORD>@<MONGO_HOST>:<MONGO_PORT>/bedandbreakfast?authSource=admin" 
 --collection=listings_and_reviews --file=data/listings.json 
 
 
@@ -11,19 +11,24 @@ Task2.2 - from 3T
     }).toArray());
 
 Task 2.3
-db.reviews.insertMany(db.getCollection("listings_and_reviews").aggregate(
+db.reviews.insertMany(db.listings.aggregate(
 {
     $unwind:"$reviews"
 },
 {
     $group: {
-        _id: '$reviews',
-        review: { $first: '$reviews' }
+        _id: '$reviews'
     }
 },
-{
-    $project: {review:1, _id:0}
-}).toArray());
+{ $replaceRoot: { newRoot: "$_id"} 
+},{
+     $project:
+      {
+         date: "$date",
+         listing_id: "$listing_id",
+         reviewer_name: { $replaceAll: { input: "$reviewer_name", find: ",", replacement: "" },},
+         comments: { $replaceAll: { input: "$comments", find: "\n", replacement: " " }}
+}}).toArray());
 
 Task 2.4
 db.getCollection("listings").update({}, {$unset: {reviews:1}} , {multi: true});
