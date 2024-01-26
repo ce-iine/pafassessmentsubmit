@@ -62,7 +62,7 @@ public class ListingsRepository {
         "address.suburb": {$regex:"manly", $options:"i"},
         price: {$lte: 900 },
             accommodates: {$gte: 1},
-            min_nights: {$lte: 1}
+            min_nights: {$gte: 1}
     }
 ).sort({ price: -1 });
 	 */
@@ -71,7 +71,7 @@ public class ListingsRepository {
 	Criteria criteria = Criteria.where("address.suburb").regex(suburb, "i")
 		.and("accommodates").gte(persons)
 		.and("price").lte(priceRange)
-		.and("min_nights").lte(duration);
+		.and("min_nights").gte(duration);
 		
 	Sort sort = Sort.by(Direction.DESC,"price");
 
