@@ -23,8 +23,9 @@ create table bookings  (
 create table reviews (
    id int auto_increment,
    date timestamp default current_timestamp not null,
+   listing_id varchar(20) not null,
    reviewer_name varchar(64) not null,
-   comments varchar(250) not null,
+   comments text not null,
    
    primary key(id)
 );

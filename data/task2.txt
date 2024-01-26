@@ -1,17 +1,17 @@
 Write your Task 2 answers in this file
 
 Task 2.1 - from command Terminal
-mongoimport -hlocalhost --port=27017 -dbedandbreakfast -clistings_and_reviews data/listings.json
+mongoimport --uri="mongodb://<MONGO_USER>:<MONGO_PASSWORD>@<MONGO_HOST>:<MONGO_PORT>/bedandbreakfast?authSource=admin&authMechanism=SCRAM-SHA-1" 
+--collection=listings_and_reviews --file=data/listings.json 
 
 
 Task2.2 - from 3T
-db.listings.insertMany(db.listings_and_reviews.find(
-    {
-        "address.country": "Australia"
+ db.listings.insertMany(db.getCollection("listings_and_reviews").find({
+        "address.country": {$regex:"Australia", $options:"i"}
     }).toArray());
 
 Task 2.3
-db.reviews.insertMany(db.listings.aggregate(
+db.reviews.insertMany(db.getCollection("listings_and_reviews").aggregate(
 {
     $unwind:"$reviews"
 },
@@ -25,3 +25,10 @@ db.reviews.insertMany(db.listings.aggregate(
     $project: {review:1, _id:0}
 }).toArray());
 
+Task 2.4
+db.getCollection("listings").update({}, {$unset: {reviews:1}} , {multi: true});
+
+Task 2.5
+mongoexport -hlocalhost --port=27017 -dbedandbreakfast -creviews -out=data/reviews.csv
+
+Task 2.6
